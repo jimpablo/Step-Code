@@ -32,6 +32,7 @@ import {
 	isStepConfigCommand,
 	isStepInteractiveLoginStartup,
 	isStepServicesDisabled,
+	isValidStepMcpServerName,
 	loginMcpServer,
 	logoutMcpServer,
 	logoutStepCredentials,
@@ -396,7 +397,16 @@ try {
 			// stdio servers only. Silently reinterpreting it as an HTTP header
 			// name would store values the transport never sends.
 			const envOnUrl = Boolean(url) && Object.keys(envValues).length > 0;
-			if (
+			// Checked before the flag-combination Usage error so a mistyped name
+			// gets its own message instead of a generic Usage line. `remove` and
+			// `get` deliberately keep accepting any name so entries written by
+			// older versions stay reachable for cleanup.
+			if (name && !servers[name] && !isValidStepMcpServerName(name)) {
+				process.stderr.write(
+					`Invalid server name '${name}': server names become the <server>__<tool> tool name prefix and may only contain letters, digits, '_' and '-'.\n`,
+				);
+				process.exitCode = 1;
+			} else if (
 				!name ||
 				servers[name] ||
 				(!url && !command) ||

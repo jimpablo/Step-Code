@@ -4,7 +4,12 @@ import path from "node:path";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { afterEach, expect, test } from "vitest";
-import { appendStepPageManagementHint, describeMcpStartFailure, resolveStepMcpEnvironment } from "./mcp.ts";
+import {
+	appendStepPageManagementHint,
+	describeMcpStartFailure,
+	isValidStepMcpServerName,
+	resolveStepMcpEnvironment,
+} from "./mcp.ts";
 
 const roots: string[] = [];
 
@@ -157,3 +162,14 @@ test("failures that are not a missing executable keep the underlying error", () 
 
 	expect(message).toBe("MCP server 'steppage__steppage' could not start: Request timed out");
 });
+
+test.each(["context7", "my-server", "My_Server-01", "a"])("server name %s is a valid tool-name prefix", (name) => {
+	expect(isValidStepMcpServerName(name)).toBe(true);
+});
+
+test.each(["my.server", "my server/x", "", "steppage 服务器", "foo\nbar"])(
+	"server name %j is rejected: it would reach the provider inside the <server>__<tool> tool name",
+	(name) => {
+		expect(isValidStepMcpServerName(name)).toBe(false);
+	},
+);

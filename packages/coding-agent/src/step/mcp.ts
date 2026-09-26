@@ -516,6 +516,19 @@ function sanitizeName(value: string): string {
 	return normalized || "tool";
 }
 
+const STEP_MCP_SERVER_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/u;
+
+/**
+ * A server name becomes the `<server>__<tool>` prefix the model sees, so a name
+ * Step accepts must stay within what a tool name may contain (the same charset
+ * the MCP import path enforces via `sanitizeServerName`). A name that slips
+ * past this check reaches the provider request verbatim, where it fails API
+ * tool-name validation on every call.
+ */
+export function isValidStepMcpServerName(value: string): boolean {
+	return STEP_MCP_SERVER_NAME_PATTERN.test(value);
+}
+
 function isString(value: unknown): value is string {
 	return typeof value === "string";
 }
